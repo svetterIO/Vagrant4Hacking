@@ -1,0 +1,38 @@
+= Vagrant base image for Ubuntu Desktop 22.04
+
+Info: This is a base image with ubuntu desktop based on `generic/ubuntu2204` which has extensive provider support: `vmware_desktop`, `virtualbox`, `hyperv`, ...
+
+== Creation
+
+This is series of command how the vagrant base image has been created:
+
+.Vagrant command series
+....
+vagrant up
+vagrant halt
+vagrant package
+....
+
+.Destroy VM if not required anymore
+....
+vagrant destroy -f
+....
+
+== Vagrantfile
+
+.Used Vagrantfile with anotations
+----
+Vagrant.configure("2") do |config|
+  # config.vm.box = "ubuntu/jammy64"// <1>
+  config.vm.box = "generic/ubuntu2204"// <2>
+  
+  config.vm.provision "shell", reboot: true, inline:<<-EOF
+    sudo apt update -y// <3>
+    sudo apt install -y ubuntu-desktop open-vm-tools-desktop// <4>
+  EOF
+end
+----
+<1> no vmware support
+<2> ubuntu server 22.04
+<3> required as package URL might change over time.
+<4> install desktop and vm tools for desktop environment. E.g. already installed vm tools do not support copy&past between host and VM.
