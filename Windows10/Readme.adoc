@@ -1,0 +1,106 @@
+= Vagrant base image for Windows 10 Development/Testing environment
+
+Info: This is a base image with Windows 10 build from March 7 2024 based on https://github.com/StefanScherer/packer-windows with packer build windows_10.json (10.0.19041 with installed updates)
+
+== Creation
+
+This is series of command how the vagrant base image has been created:
+
+.Vagrant command series
+....
+vagrant --with-gui up
+vagrant halt
+
+# execute provision. e.g. upon changed software selection in Vagrantfile
+vagrant --with-gui up --provision
+....
+
+.Destroy VM if not required anymore
+....
+vagrant destroy -f
+....
+
+== Vagrantfile
+
+.Used Vagrantfile with anotations
+----
+Vagrant.configure("2") do |config|
+
+# Uncomment this depending on the provider you want to use
+# ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox' <1>
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'vmware_desktop' <1>
+
+boxes = [
+  # windows 10 19045
+  # { :name => "Windows10_19045-customer_name", :ip => "192.168.42.10", :group => "customer_name", :box => "svetterIO/Windows10", :box_version => "10.0.19045", :os => "windows"} <2>
+  { :name => "Windows10_19045-customer_name", :group => "customer_name", :box => "svetterIO/Windows10", :box_version => "10.0.19045", :os => "windows"} <3>
+]
+  # depending on workload for VM increase as required/available <4>
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 4000
+    v.cpus = 2
+    v.gui = ARGV.include?("--with-gui") ? true : false
+  end
+  # depending on workload for VM increase as required/available <4>
+  config.vm.provider "vmware_desktop" do |v|
+    v.vmx["memsize"] = "4000"
+    v.vmx["numvcpus"] = "2"
+    v.gui = ARGV.include?("--with-gui") ? true : false
+  end
+
+  boxes.each do |box|  
+    config.vm.define box[:name] do |target|
+      # BOX
+      target.vm.provider "virtualbox" do |v|
+        v.name = box[:name]
+        v.customize ["modifyvm", :id, "--groups", "/"+box[:group]]
+      end
+      target.vm.box_download_insecure = box[:box]
+      target.vm.box = box[:box]
+      if box.has_key?(:box_version)
+        target.vm.box_version = box[:box_version]
+      end
+      
+      # IP
+      if box.has_key?(:ip)
+        target.vm.network :private_network, ip: box[:ip]
+      end
+      target.vm.provision :shell, :path => "scripts/install-winget.ps1", privileged: true <5>
+      # target.vm.provision :shell, :inline => "winget install Notepad++.Notepad++ --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install 7zip.7zip --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install PuTTY.PuTTY --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Mozilla.Firefox --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Google.Chrome --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install GitHub.GitHubDesktop --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install OpenVPNTechnologies.OpenVPNConnect --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Adobe.Acrobat.Reader.64-bit --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WinDirStat.WinDirStat --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install PortSwigger.BurpSuite.Professional --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Telerik.Fiddler --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Telerik.FiddlerEverywhere --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install BinaryFortress.FileSeek --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WiresharkFoundation.Wireshark --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.VisualStudioCode --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.AzureDataStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.SQLServerManagementStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Fortinet.FortiClientVPN --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install sqlitestudio.pl.SQLiteStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Greenshot.Greenshot --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.OfficeDeploymentTool --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Google.AndroidStudio --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install LINQPad.LINQPad.7 --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WinMerge.WinMerge --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget installInsomnia.Insomnia --accept-source-agreements --accept-package-agreements", privileged: true
+      ## pick one python version
+      # target.vm.provision :shell, :inline => "winget install Python.Python.3.0 --accept-source-agreements", privileged: true
+      ## target.vm.provision :shell, :inline => "winget install Python.Python.2 --accept-source-agreements", privileged: true
+    end
+  end
+  
+end
+----
+<1> Uncomment this depending on the provider you want to use
+<2> Use `:ip => "192.168.42.10"` to have static private_network
+<3> Use `:box_version => "10.0.19045"` to map never versions (in the future). Replace `customer_name` through the document to prevent generic naming of VM.
+<4> Select appropriate provider resource configuration depending on you use-case
+<5> Uncomment all the packages afterwards that you which as default on you VM. Packages/software can also be added later using these commands.
