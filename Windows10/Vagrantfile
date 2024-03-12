@@ -1,0 +1,74 @@
+Vagrant.configure("2") do |config|
+
+# Uncomment this depending on the provider you want to use
+# ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'vmware_desktop'
+
+boxes = [
+  # windows 10 19045
+  # { :name => "Windows10_19045-customer_name", :ip => "192.168.42.10", :group => "customer_name", :box => "svetterIO/Windows10", :box_version => "10.0.19045", :os => "windows"}
+  { :name => "Windows10_19045-customer_name", :group => "customer_name", :box => "svetterIO/Windows10", :box_version => "10.0.19045", :os => "windows"}
+]
+  # depending on workload for VM increase as required/available
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 4000
+    v.cpus = 2
+    v.gui = ARGV.include?("--with-gui") ? true : false
+  end
+  # depending on workload for VM increase as required/available
+  config.vm.provider "vmware_desktop" do |v|
+    v.vmx["memsize"] = "4000"
+    v.vmx["numvcpus"] = "2"
+    v.gui = ARGV.include?("--with-gui") ? true : false
+  end
+
+  boxes.each do |box|  
+    config.vm.define box[:name] do |target|
+      # BOX
+      target.vm.provider "virtualbox" do |v|
+        v.name = box[:name]
+        v.customize ["modifyvm", :id, "--groups", "/"+box[:group]]
+      end
+      target.vm.box_download_insecure = box[:box]
+      target.vm.box = box[:box]
+      if box.has_key?(:box_version)
+        target.vm.box_version = box[:box_version]
+      end
+      
+      # IP
+      if box.has_key?(:ip)
+        target.vm.network :private_network, ip: box[:ip]
+      end
+      target.vm.provision :shell, :path => "scripts/install-winget.ps1", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Notepad++.Notepad++ --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install 7zip.7zip --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install PuTTY.PuTTY --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Mozilla.Firefox --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Google.Chrome --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install GitHub.GitHubDesktop --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install OpenVPNTechnologies.OpenVPNConnect --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Adobe.Acrobat.Reader.64-bit --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WinDirStat.WinDirStat --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install PortSwigger.BurpSuite.Professional --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Telerik.Fiddler --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Telerik.FiddlerEverywhere --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install BinaryFortress.FileSeek --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WiresharkFoundation.Wireshark --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.VisualStudioCode --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.AzureDataStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.SQLServerManagementStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Fortinet.FortiClientVPN --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install sqlitestudio.pl.SQLiteStudio --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Greenshot.Greenshot --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.OfficeDeploymentTool --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Google.AndroidStudio --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install LINQPad.LINQPad.7 --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install WinMerge.WinMerge --accept-source-agreements --accept-package-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget installInsomnia.Insomnia --accept-source-agreements --accept-package-agreements", privileged: true
+      ## pick one python version
+      # target.vm.provision :shell, :inline => "winget install Python.Python.3.0 --accept-source-agreements", privileged: true
+      ## target.vm.provision :shell, :inline => "winget install Python.Python.2 --accept-source-agreements", privileged: true
+    end
+  end
+  
+end
