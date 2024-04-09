@@ -13,6 +13,8 @@ vagrant halt
 
 # execute provision. e.g. upon changed software selection in Vagrantfile
 vagrant --with-gui up --provision
+# restart VM with reprovision
+vagrant --with-gui reload --provision
 ....
 
 .Destroy VM if not required anymore
