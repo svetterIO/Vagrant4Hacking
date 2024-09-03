@@ -55,6 +55,7 @@ boxes = [
       # target.vm.provision :shell, :inline => "winget install BinaryFortress.FileSeek --accept-source-agreements", privileged: true
       # target.vm.provision :shell, :inline => "winget install WiresharkFoundation.Wireshark --accept-source-agreements", privileged: true
       # target.vm.provision :shell, :inline => "winget install Microsoft.VisualStudioCode --accept-source-agreements", privileged: true
+      # target.vm.provision :shell, :inline => "winget install Microsoft.VisualStudio.2022.Community --accept-source-agreements", privileged: true
       # target.vm.provision :shell, :inline => "winget install Microsoft.AzureDataStudio --accept-source-agreements", privileged: true
       # target.vm.provision :shell, :inline => "winget install Microsoft.SQLServerManagementStudio --accept-source-agreements", privileged: true
       # target.vm.provision :shell, :inline => "winget install Fortinet.FortiClientVPN --accept-source-agreements", privileged: true
